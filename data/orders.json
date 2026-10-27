@@ -1,0 +1,90 @@
+[
+  {
+    "orderNumber": "RBT-2026-FF6W4154",
+    "createdAt": "2026-10-27T04:33:23.530Z",
+    "status": "Pending Confirmation",
+    "customer": {
+      "fullName": "MD Miah Miah",
+      "phone": "+8801633912193",
+      "deliveryAddress": "Dhaka Banasree\nManikganj Garpara",
+      "email": "rifatmiah373@gmail.com",
+      "orderNotes": "fffffffffffffffffffffff"
+    },
+    "items": [
+      {
+        "productId": "vector-x1",
+        "productName": "Vector X1 Cyber Scout",
+        "productImage": "/images/products/vector-x1.jpg",
+        "unitPrice": 189,
+        "quantity": 1,
+        "subtotal": 189
+      }
+    ],
+    "subtotal": 189,
+    "shippingFee": 0,
+    "totalAmount": 189,
+    "paymentMethod": "Cash on Delivery",
+    "whatsappQueryUrl": "https://wa.me/8801904482088?text=Hello%20Tunix-Bot%20Support!%20I%20have%20placed%20an%20order%20%23RBT-2026-FF6W4154%20for%20%24189.%20My%20name%20is%20MD%20Miah%20Miah."
+  },
+  {
+    "orderNumber": "RBT-2026-7Y7K1504",
+    "createdAt": "2026-10-27T04:28:22.912Z",
+    "status": "Pending Confirmation",
+    "customer": {
+      "fullName": "MD Miah Miah",
+      "phone": "+8801633912193",
+      "deliveryAddress": "Dhaka Banasree\nManikganj Garpara",
+      "email": "rifatmiah373@gmail.com",
+      "orderNotes": "dhdf3gh1dfgh"
+    },
+    "items": [
+      {
+        "productId": "eilik-bot",
+        "productName": "Eilik Emotion Companion",
+        "productImage": "/images/products/eilik-bot.jpg",
+        "unitPrice": 149,
+        "quantity": 1,
+        "subtotal": 149
+      }
+    ],
+    "subtotal": 149,
+    "shippingFee": 15,
+    "totalAmount": 164,
+    "paymentMethod": "Cash on Delivery",
+    "whatsappQueryUrl": "https://wa.me/8801700000000?text=Hello%20RoboDesk%20Support!%20I%20have%20placed%20an%20order%20%23RBT-2026-7Y7K1504%20for%20%24164.%20My%20name%20is%20MD%20Miah%20Miah."
+  },
+  {
+    "orderNumber": "RBT-2026-8QRD1832",
+    "createdAt": "2026-10-27T04:22:49.434Z",
+    "status": "Pending Confirmation",
+    "customer": {
+      "fullName": "Tanvir Ahmed",
+      "phone": "01712345678",
+      "deliveryAddress": "House 12, Road 4, Sector 7, Uttara, Dhaka",
+      "email": "tanvir@example.com"
+    },
+    "items": [
+      {
+        "productId": "vector-x1",
+        "productName": "Vector X1 Cyber Scout",
+        "productImage": "/images/products/vector-x1.jpg",
+        "unitPrice": 189,
+        "quantity": 1,
+        "subtotal": 189
+      },
+      {
+        "productId": "deskimon-duo",
+        "productName": "Deskimon Duo: Orbit & Sprout",
+        "productImage": "/images/products/deskimon-duo.jpg",
+        "unitPrice": 199,
+        "quantity": 1,
+        "subtotal": 199
+      }
+    ],
+    "subtotal": 388,
+    "shippingFee": 0,
+    "totalAmount": 388,
+    "paymentMethod": "Cash on Delivery",
+    "whatsappQueryUrl": "https://wa.me/8801700000000?text=Hello%20RoboDesk%20Support!%20I%20have%20placed%20an%20order%20%23RBT-2026-8QRD1832%20for%20%24388.%20My%20name%20is%20Tanvir%20Ahmed."
+  }
+]
