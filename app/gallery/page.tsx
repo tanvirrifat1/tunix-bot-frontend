@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Bot, Sparkles, Heart, Zap, ArrowRight, Eye } from 'lucide-react';
 
+import { useTheme } from '@/context/ThemeContext';
+
 interface GalleryItem {
   id: string;
   title: string;
@@ -91,6 +93,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
 ];
 
 export default function GalleryPage() {
+  const { theme, mounted } = useTheme();
+  const isLight = mounted && theme === 'light';
   const [filter, setFilter] = useState<string>('All');
 
   const categories = ['All', 'Autonomous', 'Duo Set', 'Emotional AI', 'Desk Setup'];
@@ -103,16 +107,26 @@ export default function GalleryPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-10">
       {/* Page Header */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 text-xs font-semibold">
-          <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+        <div
+          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${
+            isLight
+              ? 'bg-cyan-50 border-cyan-200 text-cyan-800'
+              : 'bg-cyan-950/70 border-cyan-800/60 text-cyan-300'
+          }`}
+        >
+          <Sparkles className={`h-3.5 w-3.5 ${isLight ? 'text-cyan-600' : 'text-cyan-400'}`} />
           <span>Real Desk Setups & Expressions</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
+        <h1
+          className={`text-3xl sm:text-4xl font-extrabold ${
+            isLight ? 'text-slate-900' : 'text-white'
+          }`}
+        >
           Robot Companion Gallery
         </h1>
 
-        <p className="text-sm text-slate-300 leading-relaxed">
+        <p className={`text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
           See how our miniature autonomous robots live alongside mechanical keyboards, laptops, and developer monitors. Click any companion to adopt them with zero registration.
         </p>
       </div>
@@ -124,9 +138,11 @@ export default function GalleryPage() {
             key={cat}
             type="button"
             onClick={() => setFilter(cat)}
-            className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filter === cat
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+                ? 'bg-cyan-500 text-white font-bold shadow-md shadow-cyan-500/20 always-white'
+                : isLight
+                ? 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200/80'
                 : 'bg-slate-900/80 text-slate-300 border border-slate-800 hover:border-slate-700'
             }`}
           >
@@ -140,7 +156,9 @@ export default function GalleryPage() {
         {filteredItems.map((item) => (
           <div
             key={item.id}
-            className="group glass-card rounded-3xl overflow-hidden border border-slate-800 flex flex-col justify-between"
+            className={`group glass-card rounded-3xl overflow-hidden border flex flex-col justify-between transition-all ${
+              isLight ? 'border-slate-200/90 shadow-sm bg-white' : 'border-slate-800'
+            }`}
           >
             {/* Image Container */}
             <div className="relative aspect-[4/3] w-full bg-slate-950 overflow-hidden">
@@ -161,22 +179,40 @@ export default function GalleryPage() {
             {/* Info and Link */}
             <div className="p-5 flex flex-col flex-1 justify-between">
               <div>
-                <h3 className="font-bold text-white text-base leading-snug group-hover:text-cyan-400 transition-colors">
+                <h3
+                  className={`font-bold text-base leading-snug transition-colors ${
+                    isLight
+                      ? 'text-slate-900 group-hover:text-cyan-600'
+                      : 'text-white group-hover:text-cyan-400'
+                  }`}
+                >
                   {item.title}
                 </h3>
-                <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">
+                <p className={`mt-1.5 text-xs leading-relaxed ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                   {item.subtitle}
                 </p>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                <span className="text-[11px] text-emerald-400 font-semibold">
+              <div
+                className={`mt-5 pt-3 border-t flex items-center justify-between ${
+                  isLight ? 'border-slate-100' : 'border-slate-800/80'
+                }`}
+              >
+                <span
+                  className={`text-[11px] font-semibold ${
+                    isLight ? 'text-emerald-600' : 'text-emerald-400'
+                  }`}
+                >
                   Available in Shop
                 </span>
 
                 <Link
                   href={item.orderLink}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500 hover:text-slate-950 transition-colors"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                    isLight
+                      ? 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-500 hover:text-white always-white'
+                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500 hover:text-slate-950'
+                  }`}
                 >
                   <span>Adopt Robot</span>
                   <ArrowRight className="h-3.5 w-3.5" />

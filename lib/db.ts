@@ -112,6 +112,13 @@ export async function createOrder(
       return { success: false, error: `Invalid product selected (${item.productId}).` };
     }
 
+    if (!product.inStock || product.stockCount <= 0) {
+      return {
+        success: false,
+        error: `Sorry, "${product.name}" is currently out of stock and cannot be ordered.`,
+      };
+    }
+
     const qty = Math.max(1, Math.min(10, Math.floor(Number(item.quantity) || 1)));
     const itemSubtotal = product.price * qty;
 

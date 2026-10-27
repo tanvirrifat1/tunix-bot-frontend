@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import { Sparkles, Volume2, VolumeX, Smile, Eye, Zap, Moon } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 
 type EmotionType = 'happy' | 'excited' | 'curious' | 'wink' | 'sleep' | 'focus';
 
 export default function InteractiveHeroRobot() {
+  const { theme, mounted } = useTheme();
+  const isLight = mounted && theme === 'light';
   const [emotion, setEmotion] = useState<EmotionType>('happy');
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -80,7 +83,13 @@ export default function InteractiveHeroRobot() {
   return (
     <div className="relative flex flex-col items-center">
       {/* Robot Physical Body Card */}
-      <div className="relative z-10 w-full max-w-sm sm:max-w-md mx-auto p-6 sm:p-8 rounded-3xl glass-panel border border-cyan-500/20 shadow-2xl shadow-cyan-950/50 backdrop-blur-xl">
+      <div
+        className={`relative z-10 w-full max-w-sm sm:max-w-md mx-auto p-6 sm:p-8 rounded-3xl border shadow-2xl backdrop-blur-xl transition-colors ${
+          isLight
+            ? 'bg-white/95 border-slate-200/90 shadow-xl'
+            : 'glass-panel border-cyan-500/20 shadow-cyan-950/50'
+        }`}
+      >
         {/* Glow ambient circle behind head */}
         <div
           className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full blur-3xl pointer-events-none transition-colors duration-500"
@@ -106,13 +115,13 @@ export default function InteractiveHeroRobot() {
         </div>
 
         {/* Robot Head Frame */}
-        <div className="relative mx-auto w-64 sm:w-72 h-44 sm:h-48 rounded-[36px] bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-slate-700/80 shadow-inner flex items-center justify-center p-3 animate-float">
+        <div className="relative mx-auto w-64 sm:w-72 h-44 sm:h-48 rounded-[36px] bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-slate-700/80 shadow-inner flex items-center justify-center p-3 animate-float keep-dark-surface always-white">
           {/* Ear modules on sides */}
           <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-3.5 h-12 bg-slate-700 rounded-l-full border border-slate-600 shadow-md" />
           <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-3.5 h-12 bg-slate-700 rounded-r-full border border-slate-600 shadow-md" />
 
-          {/* OLED Glass Face Screen */}
-          <div className="relative w-full h-full rounded-[28px] bg-black border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl">
+          {/* OLED Glass Face Screen (Always pitch black OLED) */}
+          <div className="robot-head-screen keep-dark-surface always-white relative w-full h-full rounded-[28px] bg-black border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl">
             {/* Subtle Screen Scanline Effect */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-900/5 to-transparent pointer-events-none opacity-40" />
 
@@ -236,27 +245,29 @@ export default function InteractiveHeroRobot() {
         </div>
 
         {/* Live Interaction Controls */}
-        <div className="mt-6 pt-5 border-t border-slate-800/80">
+        <div className={`mt-6 pt-5 border-t ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
           <div className="flex items-center justify-between mb-3 text-xs">
-            <span className="text-slate-400 font-medium flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+            <span className={`font-medium flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <Sparkles className={`h-3.5 w-3.5 ${isLight ? 'text-cyan-600' : 'text-cyan-400'}`} />
               Live Reaction Matrix:
             </span>
 
             <button
               type="button"
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+              className={`flex items-center gap-1 transition-colors ${
+                isLight ? 'text-slate-500 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+              }`}
               title="Toggle Robot Audio Chirps"
             >
               {soundEnabled ? (
                 <>
-                  <Volume2 className="h-3.5 w-3.5 text-cyan-400" />
+                  <Volume2 className={`h-3.5 w-3.5 ${isLight ? 'text-cyan-600' : 'text-cyan-400'}`} />
                   <span className="text-[11px]">Sound On</span>
                 </>
               ) : (
                 <>
-                  <VolumeX className="h-3.5 w-3.5 text-slate-500" />
+                  <VolumeX className="h-3.5 w-3.5 text-slate-400" />
                   <span className="text-[11px]">Mute</span>
                 </>
               )}
@@ -269,7 +280,11 @@ export default function InteractiveHeroRobot() {
               onClick={() => handleSelectEmotion('happy')}
               className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 emotion === 'happy'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm shadow-cyan-500/20'
+                  ? isLight
+                    ? 'bg-cyan-50 text-cyan-800 border border-cyan-300 font-semibold shadow-xs'
+                    : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm shadow-cyan-500/20'
+                  : isLight
+                  ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200'
                   : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
             >
@@ -281,7 +296,11 @@ export default function InteractiveHeroRobot() {
               onClick={() => handleSelectEmotion('excited')}
               className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 emotion === 'excited'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm shadow-emerald-500/20'
+                  ? isLight
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 font-semibold shadow-xs'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm shadow-emerald-500/20'
+                  : isLight
+                  ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200'
                   : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
             >
@@ -293,7 +312,11 @@ export default function InteractiveHeroRobot() {
               onClick={() => handleSelectEmotion('curious')}
               className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 emotion === 'curious'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/20'
+                  ? isLight
+                    ? 'bg-amber-50 text-amber-800 border border-amber-300 font-semibold shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/20'
+                  : isLight
+                  ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200'
                   : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
             >
@@ -305,7 +328,11 @@ export default function InteractiveHeroRobot() {
               onClick={() => handleSelectEmotion('wink')}
               className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 emotion === 'wink'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-sm shadow-sky-500/20'
+                  ? isLight
+                    ? 'bg-sky-50 text-sky-800 border border-sky-300 font-semibold shadow-xs'
+                    : 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-sm shadow-sky-500/20'
+                  : isLight
+                  ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200'
                   : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
             >
@@ -317,7 +344,11 @@ export default function InteractiveHeroRobot() {
               onClick={() => handleSelectEmotion('focus')}
               className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 emotion === 'focus'
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50 shadow-sm shadow-purple-500/20'
+                  ? isLight
+                    ? 'bg-purple-50 text-purple-800 border border-purple-300 font-semibold shadow-xs'
+                    : 'bg-purple-500/20 text-purple-300 border border-purple-500/50 shadow-sm shadow-purple-500/20'
+                  : isLight
+                  ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200'
                   : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
             >
@@ -329,7 +360,11 @@ export default function InteractiveHeroRobot() {
               onClick={() => handleSelectEmotion('sleep')}
               className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 emotion === 'sleep'
-                  ? 'bg-slate-700 text-slate-200 border border-slate-600'
+                  ? isLight
+                    ? 'bg-slate-200 text-slate-800 border border-slate-300 font-semibold shadow-xs'
+                    : 'bg-slate-700 text-slate-200 border border-slate-600'
+                  : isLight
+                  ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200'
                   : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
             >

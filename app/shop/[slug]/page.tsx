@@ -14,10 +14,12 @@ import {
   Cpu,
   ArrowLeft,
   MessageCircle,
+  PackageX,
 } from 'lucide-react';
 import { getProductBySlug, PRODUCTS } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailActions from './ProductDetailActions';
+import ProductImageGallery from './ProductImageGallery';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -49,9 +51,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const isOutOfStock = !product.inStock || product.stockCount <= 0;
   const relatedProducts = PRODUCTS.filter((p) => p.id !== product.id).slice(0, 3);
-  const waInquiryUrl = `https://wa.me/8801700000000?text=${encodeURIComponent(
-    `Hi RoboDesk! I'm interested in the ${product.name} ($${product.price}). Could you answer a quick question?`
+  const waInquiryUrl = `https://wa.me/8801904482088?text=${encodeURIComponent(
+    `Hi Tunix-Bot! I'm interested in the ${product.name} ($${product.price}). Could you answer a quick question?`
   )}`;
 
   return (
@@ -71,44 +74,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
       {/* Main Product Showcase Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
-        {/* Left: Gallery Images */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="relative aspect-square w-full rounded-3xl bg-slate-900/90 border border-slate-800 overflow-hidden flex items-center justify-center p-6 shadow-2xl">
-            <div className="absolute inset-0 bg-radial from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-contain object-center p-4 hover:scale-105 transition-transform duration-500"
-            />
-            {product.badge && (
-              <div className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase glow-badge backdrop-blur-md">
-                {product.badge}
-              </div>
-            )}
-          </div>
-
-          {/* Additional Thumbnails */}
-          {product.additionalImages && product.additionalImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {product.additionalImages.map((img, idx) => (
-                <div
-                  key={idx}
-                  className="relative w-20 h-20 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shrink-0 cursor-pointer hover:border-cyan-500 transition-colors"
-                >
-                  <Image
-                    src={img}
-                    alt={`${product.name} view ${idx + 1}`}
-                    fill
-                    sizes="80px"
-                    className="object-contain p-1"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Left: Interactive Gallery Images */}
+        <div className="lg:col-span-6">
+          <ProductImageGallery product={product} />
         </div>
 
         {/* Right: Product Details & Purchase Actions */}
@@ -118,9 +86,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded-md border border-cyan-800/50">
                 {product.category}
               </span>
-              <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Ready for Fast Shipping
-              </span>
+              {isOutOfStock ? (
+                <span className="text-xs text-rose-400 font-bold flex items-center gap-1 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/60">
+                  <PackageX className="h-3.5 w-3.5 text-rose-400" /> Out of Stock
+                </span>
+              ) : (
+                <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Ready for Fast Shipping
+                </span>
+              )}
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
@@ -157,10 +131,21 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
 
             <div className="text-right">
-              <span className="text-xs font-semibold text-emerald-400 block">
-                ● In Stock ({product.stockCount} units available)
-              </span>
-              <span className="text-[11px] text-slate-400">Ships within 24 hours</span>
+              {isOutOfStock ? (
+                <>
+                  <span className="text-xs font-bold text-rose-500 block">
+                    ● Out of Stock (0 units available)
+                  </span>
+                  <span className="text-[11px] text-slate-400">Restock arriving soon</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs font-semibold text-emerald-400 block">
+                    ● In Stock ({product.stockCount} units available)
+                  </span>
+                  <span className="text-[11px] text-slate-400">Ships within 24 hours</span>
+                </>
+              )}
             </div>
           </div>
 

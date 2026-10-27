@@ -7,27 +7,29 @@ import Link from 'next/link';
 import {
   ShieldCheck,
   Zap,
-  Lock,
-  Truck,
-  MessageCircle,
-  AlertCircle,
-  CheckCircle2,
   Trash2,
   Plus,
   Minus,
   Bot,
-  CreditCard,
   Banknote,
-  Smartphone,
+  CheckCircle2,
+  AlertCircle,
+  MessageCircle,
+  PackageX,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { PRODUCTS, getProductById } from '@/data/products';
+import { getProductById } from '@/data/products';
 import { OrderInput, RobotProduct } from '@/lib/types';
+import { useTheme } from '@/context/ThemeContext';
+import { useStockModal } from '@/context/StockModalContext';
 
 function OrderFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { cart, clearCart } = useCart();
+  const { openStockModal } = useStockModal();
+  const { theme, mounted } = useTheme();
+  const isLight = mounted && theme === 'light';
 
   const quickBuyId = searchParams.get('quickBuy');
   const quickBuyQty = parseInt(searchParams.get('qty') || '1', 10);
@@ -41,7 +43,7 @@ function OrderFormContent() {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [email, setEmail] = useState(''); // Optional
   const [orderNotes, setOrderNotes] = useState(''); // Optional
-  const [paymentMethod, setPaymentMethod] = useState<'Cash on Delivery' | 'Mobile Banking (bKash/Nagad/Rocket)' | 'Bank Transfer'>('Cash on Delivery');
+  const [paymentMethod] = useState<'Cash on Delivery'>('Cash on Delivery');
   const [honeypot, setHoneypot] = useState(''); // Anti-spam hidden field
 
   const [loading, setLoading] = useState(false);
@@ -86,9 +88,23 @@ function OrderFormContent() {
   const shippingFee = subtotal >= 150 || subtotal === 0 ? 0 : 15;
   const totalAmount = subtotal + shippingFee;
 
+  const outOfStockItems = orderItems.filter(
+    (item) => !item.product.inStock || item.product.stockCount <= 0
+  );
+  const hasOutOfStock = outOfStockItems.length > 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    // Prevent ordering out of stock items
+    if (hasOutOfStock) {
+      setErrorMessage(
+        `দুঃখিত! "${outOfStockItems[0].product.name}" বর্তমানে স্টক আউট (Out of Stock)। স্টক আউট থাকা অবস্থায় অর্ডার গ্রহণ করা সম্ভব নয়।`
+      );
+      openStockModal(outOfStockItems[0].product);
+      return;
+    }
 
     // Client preliminary checks
     if (orderItems.length === 0) {
@@ -101,14 +117,18 @@ function OrderFormContent() {
       return;
     }
 
-    const cleanPhone = phone.trim().replace(/[\s\-\(\)]/g, '');
-    if (!cleanPhone || cleanPhone.length < 7) {
-      setErrorMessage('Please provide a valid phone number for courier delivery confirmation.');
+    if (!phone.trim() || phone.trim().length < 6) {
+      setErrorMessage('Please enter a valid phone number for courier delivery.');
       return;
     }
 
-    if (!deliveryAddress.trim() || deliveryAddress.trim().length < 6) {
-      setErrorMessage('Please provide a complete delivery address with street and city.');
+    if (!deliveryAddress.trim() || deliveryAddress.trim().length < 8) {
+      setErrorMessage('Please enter your complete delivery street address.');
+      return;
+    }
+
+    // Spam honeypot trap
+    if (honeypot.trim() !== '') {
       return;
     }
 
@@ -119,14 +139,14 @@ function OrderFormContent() {
         fullName: fullName.trim(),
         phone: phone.trim(),
         deliveryAddress: deliveryAddress.trim(),
-        email: email.trim() || undefined,
-        orderNotes: orderNotes.trim() || undefined,
+        email: email.trim() ? email.trim() : undefined,
+        orderNotes: orderNotes.trim() ? orderNotes.trim() : undefined,
         paymentMethod,
         items: orderItems.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
         })),
-        honeypot: honeypot || undefined,
+        honeypot: honeypot.trim(),
       };
 
       const response = await fetch('/api/orders', {
@@ -158,27 +178,57 @@ function OrderFormContent() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8">
       {/* Page Title */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-800/50 text-cyan-300 text-xs font-semibold mb-2">
-          <Zap className="h-3.5 w-3.5 text-cyan-400" />
+        <div
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-2 border ${
+            isLight
+              ? 'bg-cyan-50 border-cyan-200 text-cyan-800'
+              : 'bg-cyan-950/70 border-cyan-800/50 text-cyan-300'
+          }`}
+        >
+          <Zap className={`h-3.5 w-3.5 ${isLight ? 'text-cyan-600' : 'text-cyan-400'}`} />
           <span>Frictionless 1-Step Guest Checkout</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
+        <h1
+          className={`text-3xl sm:text-4xl font-extrabold ${
+            isLight ? 'text-slate-900' : 'text-white'
+          }`}
+        >
           Simple Order Form
         </h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className={`mt-1 text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
           No passwords, no accounts, and no registration required. Simply enter where to deliver your robot.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Guest Order Form */}
-        <div className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-400" />
+        <div
+          className={`lg:col-span-7 rounded-3xl p-6 sm:p-8 border space-y-6 transition-colors ${
+            isLight
+              ? 'bg-white border-slate-200 shadow-sm'
+              : 'glass-panel border-slate-800'
+          }`}
+        >
+          <div
+            className={`flex items-center justify-between pb-4 border-b ${
+              isLight ? 'border-slate-100' : 'border-slate-800'
+            }`}
+          >
+            <h2
+              className={`text-base font-bold flex items-center gap-2 ${
+                isLight ? 'text-slate-900' : 'text-white'
+              }`}
+            >
+              <ShieldCheck className="h-5 w-5 text-emerald-500" />
               Customer & Delivery Details
             </h2>
-            <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
+            <span
+              className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                isLight
+                  ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                  : 'text-emerald-400 bg-emerald-950/60 border-emerald-800/50'
+              }`}
+            >
               Zero Login Required
             </span>
           </div>
@@ -197,8 +247,12 @@ function OrderFormContent() {
 
             {/* Full Name */}
             <div>
-              <label className="block text-xs font-semibold text-slate-200 mb-1">
-                Full Name <span className="text-cyan-400">*</span>
+              <label
+                className={`block text-xs font-semibold mb-1 ${
+                  isLight ? 'text-slate-700' : 'text-slate-200'
+                }`}
+              >
+                Full Name <span className="text-cyan-500">*</span>
               </label>
               <input
                 type="text"
@@ -206,14 +260,22 @@ function OrderFormContent() {
                 placeholder="e.g. Alex Morgan"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none transition-colors ${
+                  isLight
+                    ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-cyan-500'
+                }`}
               />
             </div>
 
             {/* Phone Number */}
             <div>
-              <label className="block text-xs font-semibold text-slate-200 mb-1">
-                Phone Number (For Delivery Confirmation) <span className="text-cyan-400">*</span>
+              <label
+                className={`block text-xs font-semibold mb-1 ${
+                  isLight ? 'text-slate-700' : 'text-slate-200'
+                }`}
+              >
+                Phone Number (For Delivery Confirmation) <span className="text-cyan-500">*</span>
               </label>
               <input
                 type="tel"
@@ -221,17 +283,25 @@ function OrderFormContent() {
                 placeholder="e.g. 01712345678 or +1 (555) 019-2834"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none transition-colors ${
+                  isLight
+                    ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-cyan-500'
+                }`}
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              <span className={`text-[11px] mt-1 block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 The courier will call this number before arrival.
               </span>
             </div>
 
             {/* Delivery Address */}
             <div>
-              <label className="block text-xs font-semibold text-slate-200 mb-1">
-                Full Delivery Address <span className="text-cyan-400">*</span>
+              <label
+                className={`block text-xs font-semibold mb-1 ${
+                  isLight ? 'text-slate-700' : 'text-slate-200'
+                }`}
+              >
+                Full Delivery Address <span className="text-cyan-500">*</span>
               </label>
               <textarea
                 required
@@ -239,17 +309,25 @@ function OrderFormContent() {
                 placeholder="House / Apartment number, Road / Street, Sector / Area, City"
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none transition-colors ${
+                  isLight
+                    ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-cyan-500'
+                }`}
               />
             </div>
 
             {/* Optional Email */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-200">
+                <label
+                  className={`block text-xs font-semibold ${
+                    isLight ? 'text-slate-700' : 'text-slate-200'
+                  }`}
+                >
                   Email Address
                 </label>
-                <span className="text-[10px] text-slate-500 font-semibold uppercase">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase">
                   Optional
                 </span>
               </div>
@@ -258,17 +336,25 @@ function OrderFormContent() {
                 placeholder="e.g. alex@example.com (optional receipt copy)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none transition-colors ${
+                  isLight
+                    ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-cyan-500'
+                }`}
               />
             </div>
 
             {/* Optional Order Notes */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-200">
+                <label
+                  className={`block text-xs font-semibold ${
+                    isLight ? 'text-slate-700' : 'text-slate-200'
+                  }`}
+                >
                   Order Notes / Delivery Instructions
                 </label>
-                <span className="text-[10px] text-slate-500 font-semibold uppercase">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase">
                   Optional
                 </span>
               </div>
@@ -277,83 +363,88 @@ function OrderFormContent() {
                 placeholder="e.g. Please leave with building front desk or call before 5pm"
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none transition-colors ${
+                  isLight
+                    ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-cyan-500'
+                }`}
               />
             </div>
 
-            {/* Payment Method Selection */}
+            {/* Payment Method - Cash on Delivery Only */}
             <div className="pt-2">
-              <label className="block text-xs font-semibold text-slate-200 mb-2">
+              <label
+                className={`block text-xs font-semibold mb-2 ${
+                  isLight ? 'text-slate-700' : 'text-slate-200'
+                }`}
+              >
                 Payment Option:
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {/* Cash on Delivery */}
-                <label
-                  className={`p-3 rounded-xl border flex flex-col gap-1 cursor-pointer transition-all ${
-                    paymentMethod === 'Cash on Delivery'
-                      ? 'bg-cyan-950/50 border-cyan-500 text-white shadow-sm'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    className="sr-only"
-                    checked={paymentMethod === 'Cash on Delivery'}
-                    onChange={() => setPaymentMethod('Cash on Delivery')}
-                  />
-                  <Banknote className="h-4 w-4 text-emerald-400" />
-                  <span className="text-xs font-bold text-white">Cash on Delivery</span>
-                  <span className="text-[10px] text-slate-400">Pay upon parcel inspection</span>
-                </label>
+              <div
+                className={`p-4 rounded-2xl border flex items-center justify-between gap-4 transition-all ${
+                  isLight
+                    ? 'bg-cyan-50/70 border-cyan-400 ring-1 ring-cyan-400/50 shadow-xs'
+                    : 'bg-cyan-950/40 border-cyan-500/80 text-white shadow-sm ring-1 ring-cyan-500/40'
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <div
+                    className={`p-2.5 rounded-xl shrink-0 ${
+                      isLight
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        : 'bg-emerald-950/80 text-emerald-400 border border-emerald-700/60'
+                    }`}
+                  >
+                    <Banknote className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span
+                      className={`text-sm font-bold block ${
+                        isLight ? 'text-slate-900' : 'text-white'
+                      }`}
+                    >
+                      Cash on Delivery (COD)
+                    </span>
+                    <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Pay in cash directly to the courier upon parcel delivery & inspection.
+                    </p>
+                  </div>
+                </div>
 
-                {/* Mobile Banking */}
-                <label
-                  className={`p-3 rounded-xl border flex flex-col gap-1 cursor-pointer transition-all ${
-                    paymentMethod === 'Mobile Banking (bKash/Nagad/Rocket)'
-                      ? 'bg-cyan-950/50 border-cyan-500 text-white shadow-sm'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    className="sr-only"
-                    checked={paymentMethod === 'Mobile Banking (bKash/Nagad/Rocket)'}
-                    onChange={() => setPaymentMethod('Mobile Banking (bKash/Nagad/Rocket)')}
-                  />
-                  <Smartphone className="h-4 w-4 text-cyan-400" />
-                  <span className="text-xs font-bold text-white">Mobile Banking</span>
-                  <span className="text-[10px] text-slate-400">bKash / Nagad / Rocket</span>
-                </label>
-
-                {/* Bank Transfer */}
-                <label
-                  className={`p-3 rounded-xl border flex flex-col gap-1 cursor-pointer transition-all ${
-                    paymentMethod === 'Bank Transfer'
-                      ? 'bg-cyan-950/50 border-cyan-500 text-white shadow-sm'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    className="sr-only"
-                    checked={paymentMethod === 'Bank Transfer'}
-                    onChange={() => setPaymentMethod('Bank Transfer')}
-                  />
-                  <CreditCard className="h-4 w-4 text-sky-400" />
-                  <span className="text-xs font-bold text-white">Bank Transfer</span>
-                  <span className="text-[10px] text-slate-400">Direct account transfer</span>
-                </label>
+                <div className="flex items-center gap-1.5 shrink-0 px-3 py-1 rounded-full text-xs font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-500/25">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>Available</span>
+                </div>
               </div>
             </div>
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="p-3.5 rounded-xl bg-rose-950/50 border border-rose-800/80 text-rose-300 text-xs flex items-start gap-2.5">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-500" />
                 <span>{errorMessage}</span>
+              </div>
+            )}
+
+            {/* Out of Stock Warning Banner */}
+            {hasOutOfStock && (
+              <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-500 flex items-start gap-3">
+                <PackageX className="h-5 w-5 shrink-0 mt-0.5" />
+                <div className="text-xs space-y-1">
+                  <span className="font-bold block text-sm">
+                    অর্ডারে স্টক আউট পণ্য রয়েছে
+                  </span>
+                  <p className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                    &quot;{outOfStockItems[0].product.name}&quot; এর বর্তমান স্টক শেষ হয়ে গেছে। স্টক আউট পণ্যটি সরানো ছাড়া অর্ডার কনফার্ম করা যাবে না।
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openStockModal(outOfStockItems[0].product)}
+                    className="font-bold underline text-rose-500 hover:text-rose-400 mt-1 inline-block cursor-pointer"
+                  >
+                    স্টক আউট নোটিশ বিস্তারিত দেখুন →
+                  </button>
+                </div>
               </div>
             )}
 
@@ -361,27 +452,42 @@ function OrderFormContent() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={loading || orderItems.length === 0}
-                className="w-full py-4 px-6 rounded-2xl font-black text-base bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 text-slate-950 hover:brightness-110 shadow-xl shadow-cyan-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                disabled={loading || orderItems.length === 0 || hasOutOfStock}
+                onClick={(e) => {
+                  if (hasOutOfStock) {
+                    e.preventDefault();
+                    openStockModal(outOfStockItems[0].product);
+                  }
+                }}
+                className={`w-full py-4 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  hasOutOfStock
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 hover:bg-rose-500/30'
+                    : 'bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white hover:brightness-110 shadow-xl shadow-cyan-500/30 always-white disabled:opacity-50'
+                }`}
               >
                 {loading ? (
                   <span>Saving Order Securely...</span>
+                ) : hasOutOfStock ? (
+                  <>
+                    <PackageX className="h-5 w-5 text-rose-400" />
+                    <span>অর্ডার বন্ধ (পণ্য স্টক আউট)</span>
+                  </>
                 ) : (
                   <>
-                    <Zap className="h-5 w-5 fill-slate-950" />
+                    <Zap className="h-5 w-5 fill-white text-white" />
                     <span>Confirm & Place Order (${totalAmount})</span>
                   </>
                 )}
               </button>
             </div>
 
-            <p className="text-center text-[11px] text-slate-400 pt-1">
+            <p className={`text-center text-[11px] pt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               By placing this order, you agree to our{' '}
-              <Link href="/privacy-policy" className="text-cyan-400 underline">
+              <Link href="/privacy-policy" className="text-cyan-600 underline">
                 Privacy
               </Link>{' '}
               and{' '}
-              <Link href="/shipping-return-policy" className="text-cyan-400 underline">
+              <Link href="/shipping-return-policy" className="text-cyan-600 underline">
                 Shipping
               </Link>{' '}
               policies.
@@ -391,28 +497,42 @@ function OrderFormContent() {
 
         {/* Right Column: Order Summary & Review */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center justify-between">
+          <div
+            className={`rounded-3xl p-6 border space-y-4 transition-colors ${
+              isLight
+                ? 'bg-white border-slate-200 shadow-sm'
+                : 'glass-panel border-slate-800'
+            }`}
+          >
+            <h3
+              className={`text-sm font-bold uppercase tracking-wider flex items-center justify-between ${
+                isLight ? 'text-slate-900' : 'text-white'
+              }`}
+            >
               <span>Order Summary</span>
-              <span className="text-cyan-400 text-xs normal-case font-medium">
+              <span className={`text-xs normal-case font-medium ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>
                 {orderItems.reduce((acc, i) => acc + i.quantity, 0)} items
               </span>
             </h3>
 
             {/* Items list */}
             {orderItems.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-xs space-y-2">
-                <Bot className="h-8 w-8 text-slate-600 mx-auto" />
+              <div className={`py-8 text-center text-xs space-y-2 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <Bot className="h-8 w-8 text-slate-400 mx-auto" />
                 <p>No robots selected.</p>
-                <Link href="/shop" className="text-cyan-400 font-semibold underline block">
+                <Link href="/shop" className="text-cyan-600 font-semibold underline block">
                   Select a robot from shop →
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3 divide-y divide-slate-800/80">
+              <div className={`space-y-3 divide-y ${isLight ? 'divide-slate-100' : 'divide-slate-800/80'}`}>
                 {orderItems.map((item) => (
                   <div key={item.product.id} className="pt-3 first:pt-0 flex items-center gap-3">
-                    <div className="relative w-14 h-14 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden shrink-0">
+                    <div
+                      className={`relative w-14 h-14 rounded-xl border overflow-hidden shrink-0 ${
+                        isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
+                      }`}
+                    >
                       <Image
                         src={item.product.image}
                         alt={item.product.name}
@@ -423,29 +543,49 @@ function OrderFormContent() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-semibold text-white truncate">
+                      <h4
+                        className={`text-xs font-semibold truncate ${
+                          isLight ? 'text-slate-900' : 'text-white'
+                        }`}
+                      >
                         {item.product.name}
                       </h4>
-                      <p className="text-[11px] text-cyan-400 font-bold">
+                      <p className={`text-[11px] font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>
                         ${item.product.price} each
                       </p>
 
+                      {(!item.product.inStock || item.product.stockCount <= 0) && (
+                        <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 inline-flex items-center gap-1 mt-1">
+                          <PackageX className="h-3 w-3" /> Stock Out
+                        </span>
+                      )}
+
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center rounded-md bg-slate-800 border border-slate-700">
+                        <div
+                          className={`flex items-center rounded-md border ${
+                            isLight
+                              ? 'bg-slate-100 border-slate-200 text-slate-800'
+                              : 'bg-slate-800 border-slate-700 text-white'
+                          }`}
+                        >
                           <button
                             type="button"
                             onClick={() => handleUpdateQuantity(item.product.id, -1)}
-                            className="px-1.5 py-0.5 text-xs text-slate-400 hover:text-white"
+                            className={`px-1.5 py-0.5 text-xs transition-colors cursor-pointer ${
+                              isLight ? 'text-slate-500 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                            }`}
                           >
                             <Minus className="h-2.5 w-2.5" />
                           </button>
-                          <span className="px-2 text-xs font-bold text-white">
+                          <span className={`px-2 text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleUpdateQuantity(item.product.id, 1)}
-                            className="px-1.5 py-0.5 text-xs text-slate-400 hover:text-white"
+                            className={`px-1.5 py-0.5 text-xs transition-colors cursor-pointer ${
+                              isLight ? 'text-slate-500 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                            }`}
                           >
                             <Plus className="h-2.5 w-2.5" />
                           </button>
@@ -454,7 +594,7 @@ function OrderFormContent() {
                         <button
                           type="button"
                           onClick={() => handleRemoveItem(item.product.id)}
-                          className="text-slate-500 hover:text-rose-400 text-xs ml-auto"
+                          className="text-slate-400 hover:text-rose-500 text-xs ml-auto cursor-pointer"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -462,7 +602,7 @@ function OrderFormContent() {
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-xs font-bold text-white">
+                      <span className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                         ${item.product.price * item.quantity}
                       </span>
                     </div>
@@ -472,41 +612,65 @@ function OrderFormContent() {
             )}
 
             {/* Calculations Breakdown */}
-            <div className="pt-4 border-t border-slate-800 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-400">
+            <div
+              className={`pt-4 border-t space-y-2 text-xs ${
+                isLight ? 'border-slate-100' : 'border-slate-800'
+              }`}
+            >
+              <div className={`flex justify-between ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 <span>Subtotal (Server Verified)</span>
-                <span className="font-semibold text-slate-200">${subtotal}</span>
+                <span className={`font-semibold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>${subtotal}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className={`flex justify-between ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 <span>Courier Express Shipping</span>
-                <span className="font-semibold text-emerald-400">
+                <span className="font-semibold text-emerald-500">
                   {shippingFee === 0 ? 'FREE ($150+ threshold)' : `$${shippingFee}`}
                 </span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-slate-800 text-sm font-bold text-white">
+              <div
+                className={`flex justify-between pt-2 border-t text-sm font-bold ${
+                  isLight ? 'border-slate-100 text-slate-900' : 'border-slate-800 text-white'
+                }`}
+              >
                 <span>Total Payable</span>
-                <span className="text-cyan-400 font-extrabold text-lg">${totalAmount}</span>
+                <span className={`font-extrabold text-lg ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>
+                  ${totalAmount}
+                </span>
               </div>
             </div>
           </div>
 
           {/* WhatsApp Support Callout */}
-          <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-800/50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+          <div
+            className={`p-4 rounded-2xl border flex items-center gap-3 transition-colors ${
+              isLight
+                ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+                : 'bg-emerald-950/30 border-emerald-800/50 text-emerald-300'
+            }`}
+          >
+            <div
+              className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                isLight
+                  ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
+                  : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+              }`}
+            >
               <MessageCircle className="h-5 w-5" />
             </div>
             <div className="text-xs">
-              <p className="font-bold text-white">Need immediate order help?</p>
-              <p className="text-slate-400">
+              <p className={`font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Need immediate order help?
+              </p>
+              <p className={isLight ? 'text-slate-600' : 'text-slate-400'}>
                 You can also place or confirm orders directly via WhatsApp at any time.
               </p>
               <a
-                href="https://wa.me/8801700000000?text=Hi%20RoboDesk!%20I'd%20like%20to%20place%20an%20order."
+                href="https://wa.me/8801904482088?text=Hi%20Tunix-Bot!%20I'd%20like%20to%20place%20an%20order."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-400 font-bold hover:underline mt-1 inline-block"
+                className="text-emerald-600 font-bold hover:underline mt-1 inline-block"
               >
-                Open WhatsApp Chat →
+                Open WhatsApp Chat (01904482088) →
               </a>
             </div>
           </div>
@@ -520,7 +684,7 @@ export default function OrderPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[50vh] flex items-center justify-center text-cyan-400">
+        <div className="min-h-[50vh] flex items-center justify-center text-cyan-500">
           Loading order form...
         </div>
       }

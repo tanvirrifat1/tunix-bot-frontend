@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { StockModalProvider } from '@/context/StockModalContext';
 import { Suspense } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -64,12 +65,14 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col transition-colors duration-200">
         <ThemeProvider>
           <CartProvider>
-            <Suspense fallback={<div className="h-20 bg-slate-950 border-b border-slate-800" />}>
-              <Navbar />
-            </Suspense>
-            <main className="flex-grow">{children}</main>
-            <Footer />
-            <CartDrawer />
+            <StockModalProvider>
+              <Suspense fallback={<div className="h-20 bg-slate-950 border-b border-slate-800" />}>
+                <Navbar />
+              </Suspense>
+              <main className="flex-grow">{children}</main>
+              <Footer />
+              <CartDrawer />
+            </StockModalProvider>
           </CartProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
-:root {
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:root,
+html.dark,
+html[data-theme="dark"] {
   --background: #080c14;
   --foreground: #f1f5f9;
   --panel-bg: rgba(15, 23, 42, 0.75);
@@ -14,18 +18,20 @@
   --accent-emerald: #10b981;
 }
 
-/* Light Mode Overrides */
+/* Light / White Mode Overrides */
 html.light,
 html[data-theme="light"] {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --panel-bg: rgba(255, 255, 255, 0.88);
-  --panel-border: rgba(203, 213, 225, 0.8);
+  --panel-bg: rgba(255, 255, 255, 0.95);
+  --panel-border: rgba(226, 232, 240, 0.9);
   --card-bg: #ffffff;
   --card-border: rgba(226, 232, 240, 1);
   --card-hover-border: rgba(6, 182, 212, 0.5);
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
   --subtext: #475569;
+  --accent-cyan: #0284c7;
+  --accent-emerald: #059669;
 }
 
 body {
@@ -34,7 +40,7 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Glassmorphism surfaces */
@@ -58,54 +64,107 @@ body {
   box-shadow: var(--card-shadow);
 }
 
-/* Light mode specific element adjustments */
+/* -------------------------------------------------------------
+   LIGHT MODE TARGETED ADAPTATIONS
+   Guarantees clean readability and maintains crisp text on colored buttons
+------------------------------------------------------------- */
 html.light body {
   background-color: #f8fafc;
   color: #0f172a;
 }
 
-html.light .text-white {
+/* Keep text crisp white on colored buttons, gradient cards, and dark overlays */
+.always-white,
+.keep-dark-surface,
+.keep-dark-surface *,
+.robot-head-screen,
+.robot-head-screen *,
+.btn-primary,
+.btn-primary *,
+[class*="bg-gradient-to-r"][class*="text-white"],
+[class*="bg-gradient-to-r"][class*="text-white"] *,
+button[class*="bg-cyan-500"][class*="text-white"],
+a[class*="bg-cyan-500"][class*="text-white"] {
+  color: #ffffff !important;
+}
+
+/* Primary text in light mode - only for standard page elements */
+html.light :not(.keep-dark-surface):not(.keep-dark-surface *):not(.always-white):not(.robot-head-screen):not(.robot-head-screen *):not([class*="bg-gradient-to-r"][class*="text-white"]):not([class*="bg-gradient-to-r"][class*="text-white"] *).text-white {
   color: #0f172a !important;
 }
 
-html.light .text-slate-200,
-html.light .text-slate-300 {
+html.light :not(.keep-dark-surface):not(.keep-dark-surface *):not(.always-white).text-slate-200,
+html.light :not(.keep-dark-surface):not(.keep-dark-surface *):not(.always-white).text-slate-300 {
   color: #334155 !important;
 }
 
-html.light .text-slate-400 {
+html.light :not(.keep-dark-surface):not(.keep-dark-surface *):not(.always-white).text-slate-400 {
   color: #64748b !important;
 }
 
-html.light .bg-slate-950,
-html.light .bg-slate-900 {
+/* Light mode backgrounds for slate cards */
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-950,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-900 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
 }
 
-html.light .bg-slate-900\/60,
-html.light .bg-slate-900\/70,
-html.light .bg-slate-900\/80,
-html.light .bg-slate-900\/90,
-html.light .bg-slate-950\/60,
-html.light .bg-slate-950\/70,
-html.light .bg-slate-950\/80,
-html.light .bg-slate-950\/90 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-900\/90,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-900\/80,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-900\/70,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-900\/60,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-900\/50,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-950\/90,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-950\/80,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-950\/70,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-950\/60,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-950\/50 {
+  background-color: rgba(255, 255, 255, 0.96) !important;
   border-color: #e2e8f0 !important;
 }
 
-html.light .bg-slate-800 {
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-800,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).bg-slate-800\/80 {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
   color: #1e293b !important;
 }
 
-html.light .border-slate-800,
-html.light .border-slate-700 {
+html.light :not(.keep-dark-surface):not(.robot-head-screen).border-slate-800,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).border-slate-800\/80,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).border-slate-800\/60,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).border-slate-800\/50,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).border-slate-700,
+html.light :not(.keep-dark-surface):not(.robot-head-screen).border-slate-700\/80 {
   border-color: #e2e8f0 !important;
 }
 
+/* Light mode tints for cyan, emerald and blue micro-badges */
+html.light :not(.keep-dark-surface).bg-cyan-950,
+html.light :not(.keep-dark-surface).bg-cyan-950\/60,
+html.light :not(.keep-dark-surface).bg-cyan-950\/40 {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0369a1 !important;
+}
+
+html.light :not(.keep-dark-surface).bg-emerald-950,
+html.light :not(.keep-dark-surface).bg-emerald-950\/60,
+html.light :not(.keep-dark-surface).bg-emerald-950\/40 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+
+html.light :not(.keep-dark-surface).bg-blue-950,
+html.light :not(.keep-dark-surface).bg-blue-950\/60,
+html.light :not(.keep-dark-surface).bg-blue-950\/40 {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+/* Form inputs in light mode */
 html.light input,
 html.light textarea,
 html.light select {
@@ -114,10 +173,15 @@ html.light select {
   color: #0f172a !important;
 }
 
-/* Keep the robot face screen always dark/OLED for authentic robotic look */
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Keep the robot face screen always authentic OLED pitch black */
 .robot-head-screen,
 .robot-head-screen * {
-  color: inherit;
+  color: inherit !important;
 }
 
 /* Cyber Glow Buttons */
@@ -144,6 +208,12 @@ html.light select {
   border-radius: 0.75rem;
   padding: 0.75rem 1.5rem;
   transition: all 0.25s ease;
+}
+
+html.light .btn-secondary {
+  background: #ffffff;
+  color: #1e293b;
+  border-color: #cbd5e1;
 }
 
 /* Glow Badge */
@@ -199,6 +269,21 @@ html.dark .glow-badge {
 .robot-eye-blinking {
   animation: eyeBlink 3.8s ease-in-out infinite;
   transform-origin: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.3;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Custom Scrollbar */
