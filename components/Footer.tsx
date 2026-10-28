@@ -185,8 +185,8 @@ export default function Footer() {
             </h4>
             <ul className={`space-y-2 text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               <li>
-                <Link href="/gallery" className={isLight ? 'hover:text-cyan-600' : 'hover:text-cyan-400'}>
-                  Robot Gallery
+                <Link href="/features" className={isLight ? 'hover:text-cyan-600' : 'hover:text-cyan-400'}>
+                  Robot Features
                 </Link>
               </li>
               <li>

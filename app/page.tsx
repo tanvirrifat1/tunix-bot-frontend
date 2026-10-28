@@ -19,6 +19,7 @@ import {
 import { PRODUCTS } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import InteractiveHeroRobot from '@/components/InteractiveHeroRobot';
+import FeaturesGrid from '@/components/FeaturesGrid';
 import { useTheme } from '@/context/ThemeContext';
 
 export default function HomePage() {
@@ -255,110 +256,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WHY A DESK ROBOT COMPANION? */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className={`rounded-3xl p-8 sm:p-12 border transition-colors ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-sm'
-              : 'glass-panel border-slate-800'
-          }`}
-        >
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span
-              className={`text-xs font-bold uppercase tracking-widest block mb-2 ${
-                isLight ? 'text-cyan-700' : 'text-cyan-400'
-              }`}
-            >
-              The Workspace Revolution
-            </span>
-            <h2
-              className={`text-2xl sm:text-3xl font-extrabold ${
-                isLight ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              Why Creators & Engineers Love Desk Robots
-            </h2>
-            <p className={`mt-2 text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-              More than a toy — an interactive mechanical companion engineered to reduce screen fatigue and inspire focus.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div
-              className={`p-6 rounded-2xl border space-y-3 transition-colors ${
-                isLight
-                  ? 'bg-slate-50/70 border-slate-200'
-                  : 'bg-slate-900/60 border-slate-800/80'
-              }`}
-            >
-              <div
-                className={`h-12 w-12 rounded-xl flex items-center justify-center border ${
-                  isLight
-                    ? 'bg-cyan-50 border-cyan-200 text-cyan-600'
-                    : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
-                }`}
-              >
-                <Smile className="h-6 w-6" />
-              </div>
-              <h3 className={`text-lg font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                Living Personality & Joy
-              </h3>
-              <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                Over 100+ facial emotions and spontaneous reactions. Stroke their head, watch them cheer when you finish code, or let them take a nap during quiet hours.
-              </p>
-            </div>
-
-            <div
-              className={`p-6 rounded-2xl border space-y-3 transition-colors ${
-                isLight
-                  ? 'bg-slate-50/70 border-slate-200'
-                  : 'bg-slate-900/60 border-slate-800/80'
-              }`}
-            >
-              <div
-                className={`h-12 w-12 rounded-xl flex items-center justify-center border ${
-                  isLight
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
-                    : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                }`}
-              >
-                <Clock className="h-6 w-6" />
-              </div>
-              <h3 className={`text-lg font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                Pomodoro & Focus Assistance
-              </h3>
-              <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                Set sprint timers, posture checks, and hydration reminders. Gentle robotic chirps keep you in the flow zone without the stress of loud smartphone alarms.
-              </p>
-            </div>
-
-            <div
-              className={`p-6 rounded-2xl border space-y-3 transition-colors ${
-                isLight
-                  ? 'bg-slate-50/70 border-slate-200'
-                  : 'bg-slate-900/60 border-slate-800/80'
-              }`}
-            >
-              <div
-                className={`h-12 w-12 rounded-xl flex items-center justify-center border ${
-                  isLight
-                    ? 'bg-purple-50 border-purple-200 text-purple-600'
-                    : 'bg-purple-500/10 border-purple-500/30 text-purple-400'
-                }`}
-              >
-                <Cpu className="h-6 w-6" />
-              </div>
-              <h3 className={`text-lg font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                Edge-Aware & Autonomous
-              </h3>
-              <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                Optical cliff sensors guarantee your robot never falls off your table. They explore your keyboard perimeter safely and self-dock to charge.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* WHAT TUNIX-BOT CAN DO - 8-FEATURE GRID */}
+      <FeaturesGrid />
 
       {/* AUTHENTICATION-FREE SHOPPING BANNER (Always keep dark surface with bright white text) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -386,11 +285,11 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href="/gallery"
+              href="/shop"
               className="px-6 py-3.5 rounded-xl font-semibold text-sm bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700 flex items-center justify-center gap-2 transition-all always-white"
             >
               <Bot className="h-4 w-4 text-cyan-400" />
-              <span>See Robot Gallery</span>
+              <span>Browse All Robots</span>
             </Link>
           </div>
         </div>

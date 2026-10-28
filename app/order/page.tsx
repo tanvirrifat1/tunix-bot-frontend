@@ -16,9 +16,11 @@ import {
   AlertCircle,
   MessageCircle,
   PackageX,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { getProductById } from '@/data/products';
+import { PRODUCTS, getProductById } from '@/data/products';
 import { OrderInput, RobotProduct } from '@/lib/types';
 import { useTheme } from '@/context/ThemeContext';
 import { useStockModal } from '@/context/StockModalContext';
@@ -46,8 +48,32 @@ function OrderFormContent() {
   const [paymentMethod] = useState<'Cash on Delivery'>('Cash on Delivery');
   const [honeypot, setHoneypot] = useState(''); // Anti-spam hidden field
 
+  // Robot selection dropdown state
+  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Close dropdown on outside click or Escape key
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProductDropdownOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsProductDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // Initialize order items
   useEffect(() => {
@@ -83,6 +109,16 @@ function OrderFormContent() {
     setOrderItems((prev) => prev.filter((i) => i.product.id !== productId));
   };
 
+  const handleSelectProduct = (product: RobotProduct) => {
+    const existing = orderItems.find((i) => i.product.id === product.id);
+    const qty = existing ? existing.quantity : 1;
+    setOrderItems([{ product, quantity: qty }]);
+    setIsProductDropdownOpen(false);
+    setErrorMessage(null);
+  };
+
+  const selectedProduct = orderItems.length > 0 ? orderItems[0].product : null;
+
   // Pricing calculations
   const subtotal = orderItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const shippingFee = subtotal >= 150 || subtotal === 0 ? 0 : 15;
@@ -108,7 +144,9 @@ function OrderFormContent() {
 
     // Client preliminary checks
     if (orderItems.length === 0) {
-      setErrorMessage('Your order is empty. Please add at least one robot to order.');
+      setErrorMessage('Please select which robot companion you want to order from the dropdown above.');
+      setIsProductDropdownOpen(true);
+      dropdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -243,6 +281,191 @@ function OrderFormContent() {
                 value={honeypot}
                 onChange={(e) => setHoneypot(e.target.value)}
               />
+            </div>
+
+            {/* Robot Selection Dropdown Field */}
+            <div className="relative" ref={dropdownRef}>
+              <div className="flex items-center justify-between mb-1.5">
+                <label
+                  className={`block text-xs font-semibold ${
+                    isLight ? 'text-slate-700' : 'text-slate-200'
+                  }`}
+                >
+                  Select Robot to Order (কোন রোবটটি নিতে চান?) <span className="text-cyan-500">*</span>
+                </label>
+                {selectedProduct && (
+                  <span className={`text-[11px] font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Click field to change
+                  </span>
+                )}
+              </div>
+
+              {/* Dropdown Toggle Field */}
+              <button
+                type="button"
+                onClick={() => setIsProductDropdownOpen((prev) => !prev)}
+                className={`w-full px-4 py-2.5 rounded-xl text-sm border flex items-center justify-between text-left transition-all cursor-pointer ${
+                  isProductDropdownOpen
+                    ? 'border-cyan-500 ring-2 ring-cyan-500/20'
+                    : isLight
+                    ? 'bg-white border-slate-300 text-slate-900 hover:border-cyan-500'
+                    : 'bg-slate-950 border-slate-700 text-white hover:border-cyan-500'
+                }`}
+              >
+                {selectedProduct ? (
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`relative w-10 h-10 rounded-lg border overflow-hidden shrink-0 ${
+                        isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900 border-slate-800'
+                      }`}
+                    >
+                      <Image
+                        src={selectedProduct.image}
+                        alt={selectedProduct.name}
+                        fill
+                        sizes="40px"
+                        className="object-contain p-1"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <span
+                        className={`font-bold text-sm block truncate ${
+                          isLight ? 'text-slate-900' : 'text-white'
+                        }`}
+                      >
+                        {selectedProduct.name}
+                      </span>
+                      <span className="text-xs text-cyan-500 font-semibold">
+                        ${selectedProduct.price} • {selectedProduct.category}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2.5 text-slate-400">
+                    <div
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                        isLight ? 'bg-slate-100 text-slate-500' : 'bg-slate-900 text-slate-400'
+                      }`}
+                    >
+                      <Bot className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold block text-slate-400">
+                        Choose a robot companion...
+                      </span>
+                      <span className="text-[11px] text-slate-500 block">
+                        ড্রপডাউন ক্লিক করে রোবট নির্বাচন করুন
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1 shrink-0 text-slate-400 ml-2">
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform duration-200 ${
+                      isProductDropdownOpen ? 'rotate-180 text-cyan-500' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Dropdown Menu */}
+              {isProductDropdownOpen && (
+                <div
+                  className={`absolute left-0 right-0 mt-2 rounded-2xl border shadow-2xl z-40 overflow-hidden backdrop-blur-xl animate-in fade-in-50 slide-in-from-top-2 duration-150 ${
+                    isLight
+                      ? 'bg-white/98 border-slate-200 shadow-slate-300/70'
+                      : 'bg-slate-950/98 border-slate-800 shadow-black/80'
+                  }`}
+                >
+                  <div
+                    className={`p-2.5 border-b text-[11px] font-semibold flex items-center justify-between ${
+                      isLight
+                        ? 'bg-slate-50 border-slate-100 text-slate-500'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <span>AVAILABLE ROBOTS ({PRODUCTS.length})</span>
+                    <span>Click to select</span>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto p-1.5 space-y-1">
+                    {PRODUCTS.map((prod) => {
+                      const isSelected = selectedProduct?.id === prod.id;
+                      const isOutOfStock = !prod.inStock || prod.stockCount <= 0;
+
+                      return (
+                        <button
+                          key={prod.id}
+                          type="button"
+                          onClick={() => handleSelectProduct(prod)}
+                          className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl transition-all text-left cursor-pointer ${
+                            isSelected
+                              ? isLight
+                                ? 'bg-cyan-50 border border-cyan-300 text-cyan-950 shadow-xs'
+                                : 'bg-cyan-950/60 border border-cyan-700/60 text-cyan-100 shadow-xs'
+                              : isLight
+                              ? 'hover:bg-slate-100 text-slate-800 border border-transparent'
+                              : 'hover:bg-slate-900 text-slate-200 border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Product Image */}
+                            <div
+                              className={`relative w-12 h-12 rounded-xl border overflow-hidden shrink-0 ${
+                                isLight
+                                  ? 'bg-slate-50 border-slate-200'
+                                  : 'bg-slate-900 border-slate-800'
+                              }`}
+                            >
+                              <Image
+                                src={prod.image}
+                                alt={prod.name}
+                                fill
+                                sizes="48px"
+                                className="object-contain p-1"
+                              />
+                            </div>
+
+                            {/* Product Name & Details */}
+                            <div className="min-w-0">
+                              <span className="font-bold text-sm block truncate">
+                                {prod.name}
+                              </span>
+                              <div className="flex items-center gap-2 text-xs mt-0.5">
+                                <span className="font-bold text-cyan-500">
+                                  ${prod.price}
+                                </span>
+                                {isOutOfStock ? (
+                                  <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-1.5 py-0.2 rounded border border-rose-500/20">
+                                    Stock Out
+                                  </span>
+                                ) : (
+                                  <span
+                                    className={`text-[11px] ${
+                                      isLight ? 'text-slate-500' : 'text-slate-400'
+                                    }`}
+                                  >
+                                    In Stock ({prod.stockCount})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Selected Checkmark */}
+                          {isSelected && (
+                            <div className="shrink-0 mr-1.5">
+                              <div className="w-5 h-5 rounded-full bg-cyan-500 text-white flex items-center justify-center">
+                                <Check className="h-3.5 w-3.5 stroke-[3]" />
+                              </div>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Full Name */}
@@ -517,12 +740,20 @@ function OrderFormContent() {
 
             {/* Items list */}
             {orderItems.length === 0 ? (
-              <div className={`py-8 text-center text-xs space-y-2 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <div className={`py-8 text-center text-xs space-y-3 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 <Bot className="h-8 w-8 text-slate-400 mx-auto" />
-                <p>No robots selected.</p>
-                <Link href="/shop" className="text-cyan-600 font-semibold underline block">
-                  Select a robot from shop →
-                </Link>
+                <p className="font-medium">No robots selected yet.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProductDropdownOpen(true);
+                    dropdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500 border border-cyan-500/30 hover:bg-cyan-500/20 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Bot className="h-3.5 w-3.5" />
+                  <span>Choose Robot from Dropdown ↑</span>
+                </button>
               </div>
             ) : (
               <div className={`space-y-3 divide-y ${isLight ? 'divide-slate-100' : 'divide-slate-800/80'}`}>
